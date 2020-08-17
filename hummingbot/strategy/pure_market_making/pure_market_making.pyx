@@ -592,7 +592,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 if self._asset_price_delegate is not None and self._all_markets_ready:
                     self._all_markets_ready = self._asset_price_delegate.ready
                 if self._wac == 0:
-                    self._all_markets_ready = false
+                    self._all_markets_ready = False
                 if not self._all_markets_ready:
                     # Markets not ready yet. Don't do anything.
                     if should_report_warnings:
