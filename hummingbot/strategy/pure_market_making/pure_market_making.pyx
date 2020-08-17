@@ -146,6 +146,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return all([market.ready for market in self._sb_markets])
 
     @property
+    def filled_buys_balance(self) -> int
+        return self._filled_buys_balance
+
+    @property
+    def filled_sells_balance(self) -> int
+        return self._filled_sells_balance
+
+    @property
     def order_refresh_tolerance_pct(self) -> Decimal:
         return self._order_refresh_tolerance_pct
 
