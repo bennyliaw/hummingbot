@@ -660,7 +660,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
     cdef c_apply_ping_pong(self, object proposal):
         self._ping_pong_warning_lines = []
-        if self._filled_buys_balance == self._filled_sells_balance:
+        if self._filled_buys_balance == self._filled_sells_balance and self._filled_buys_balance > 0:
             self._filled_buys_balance = self._filled_sells_balance = 0
             self._ping_pong_warning_lines.extend(
                 [f"  Ping-pong restored all buy and sell orders."]
