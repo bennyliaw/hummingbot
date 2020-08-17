@@ -146,11 +146,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return all([market.ready for market in self._sb_markets])
 
     @property
-    def filled_buys_balance(self) -> int
+    def filled_buys_balance(self) -> int:
         return self._filled_buys_balance
 
     @property
-    def filled_sells_balance(self) -> int
+    def filled_sells_balance(self) -> int:
         return self._filled_sells_balance
 
     @property
@@ -665,7 +665,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self._ping_pong_warning_lines.extend(
                 [f"  Ping-pong restored all buy and sell orders."]
             )
-        else if self._filled_buys_balance > 0 and self._filled_sells_balance > 0:
+        elif self._filled_buys_balance > 0 and self._filled_sells_balance > 0:
             restore_filled = min(self._filled_buys_balance, self._filled_sells_balance)
             self._filled_buys_balance -= restore_filled
             self._filled_sells_balance -= restore_filled
