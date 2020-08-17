@@ -149,9 +149,17 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     def filled_buys_balance(self) -> int:
         return self._filled_buys_balance
 
+    @filled_buys_balance.setter
+    def filled_buys_balance(self, value: int):
+        self._filled_buys_balance = value
+
     @property
     def filled_sells_balance(self) -> int:
         return self._filled_sells_balance
+
+    @filled_sells_balance.setter
+    def filled_sells_balance(self, value: int):
+        self._filled_sells_balance = value
 
     @property
     def order_refresh_tolerance_pct(self) -> Decimal:
