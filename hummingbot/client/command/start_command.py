@@ -129,5 +129,7 @@ class StartCommand:
             if self._trading_required:
                 self.kill_switch = KillSwitch(self)
                 await self.wait_till_ready(self.kill_switch.start)
+
+            await self.wait_till_ready(self.strategy.did_start)
         except Exception as e:
             self.logger().error(str(e), exc_info=True)

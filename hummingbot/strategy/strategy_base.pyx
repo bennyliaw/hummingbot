@@ -227,6 +227,9 @@ cdef class StrategyBase(TimeIterator):
             ])
         return warning_lines
 
+    def did_start(self):
+        pass
+
     cdef c_start(self, Clock clock, double timestamp):
         TimeIterator.c_start(self, clock, timestamp)
         self._sb_order_tracker.c_start(clock, timestamp)

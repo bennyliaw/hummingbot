@@ -139,11 +139,23 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._logging_options = logging_options
         self._last_timestamp = 0
         self._status_report_interval = status_report_interval
+        self._wac = Decimal(0)
+
+        self.logger().info("Init _wac 0") # BYAO DEBUG
 
         self.c_add_markets([market_info.market])
 
     def all_markets_ready(self):
         return all([market.ready for market in self._sb_markets])
+
+    def did_start(self):
+        self.logger().info("PMM started, markets ready") # BYAO DEBUG
+        self._wac = self._market_info.get_mid_price()
+        self.logger().info(f"_wac set to {self._wac}") # BYAO DEBU
+
+    @property
+    def market_info(self):
+        return self._market_info
 
     @property
     def filled_buys_balance(self) -> int:
@@ -579,6 +591,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self._all_markets_ready = all([market.ready for market in self._sb_markets])
                 if self._asset_price_delegate is not None and self._all_markets_ready:
                     self._all_markets_ready = self._asset_price_delegate.ready
+                if self._wac == 0:
+                    self._all_markets_ready = false
                 if not self._all_markets_ready:
                     # Markets not ready yet. Don't do anything.
                     if should_report_warnings:
@@ -673,12 +687,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self._ping_pong_warning_lines.extend(
                 [f"  Ping-pong restored all buy and sell orders."]
             )
+            self.notify_hb_app(
+                f"  Ping-pong restored all buy and sell orders."
+            )
         elif self._filled_buys_balance > 0 and self._filled_sells_balance > 0:
             restore_filled = min(self._filled_buys_balance, self._filled_sells_balance)
             self._filled_buys_balance -= restore_filled
             self._filled_sells_balance -= restore_filled
             self._ping_pong_warning_lines.extend(
                 [f"  Ping-pong restored {restore_filled} from buy and sell orders."]
+            )
+            self.notify_hb_app(
+                f"  Ping-pong restored {restore_filled} from buy and sell orders."
             )
 
         if self._filled_buys_balance > 0:
@@ -848,6 +868,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             order_fill_record = (limit_order_record, order_filled_event)
 
             if order_filled_event.trade_type is TradeType.BUY:
+                wac = (self._wac * self._market_info.base_balance + order_filled_event.price * order_filled_event.amount) / (self.market_info.base_balance + order_filled_event.amount)
+                self.logger().info(f"** wac changed from {self._wac} to {wac}")
+                self._wac = wac
+
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
                         logging.INFO,

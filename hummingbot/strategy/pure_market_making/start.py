@@ -17,6 +17,7 @@ from decimal import Decimal
 
 def start(self):
     try:
+        self.logger().info("pure_market_making start initiated, will read config properties for this strat now.")
         order_amount = c_map.get("order_amount").value
         order_refresh_time = c_map.get("order_refresh_time").value
         bid_spread = c_map.get("bid_spread").value / Decimal('100')
@@ -70,6 +71,7 @@ def start(self):
 
         strategy_logging_options = PureMarketMakingStrategy.OPTION_LOG_ALL
 
+        self.logger().info("Constructing PureMarketMakingStrategy.")
         self.strategy = PureMarketMakingStrategy(
             market_info=MarketTradingPairTuple(*maker_data),
             bid_spread=bid_spread,
@@ -99,6 +101,7 @@ def start(self):
             minimum_spread=minimum_spread,
             hb_app_notification=True,
         )
+        self.logger().info("Done pure_market_making start.")
     except Exception as e:
         self._notify(str(e))
         self.logger().error("Unknown error during initialization.", exc_info=True)
