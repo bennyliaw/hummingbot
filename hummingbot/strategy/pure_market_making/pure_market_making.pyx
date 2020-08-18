@@ -141,7 +141,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._status_report_interval = status_report_interval
         self._wac = Decimal(0)
 
-        self.logger().info("Init _wac 0") # BYAO DEBUG
+        self.logger().info("Init _wac 0")  # BYAO DEBUG
 
         self.c_add_markets([market_info.market])
 
@@ -149,14 +149,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         return all([market.ready for market in self._sb_markets])
 
     def did_start(self):
-        self.logger().info("PMM started, markets ready") # BYAO DEBUG
+        self.logger().info("PMM started, markets ready")  # BYAO DEBUG
         from hummingbot.client.hummingbot_application import HummingbotApplication
         hb = HummingbotApplication.main_application()
         queried_trades = hb._get_trades_from_session(hb.init_time, config_file_path=hb.strategy_file_name)
         qty: Decimal = Decimal(0)
         wac: Decimal = Decimal(0)
         if len(queried_trades) > 0:
-            for trade in queries_trades:
+            for trade in queried_trades:
                 amount: Decimal = Decimal(str(trade.amount))
                 price: Decimal = Decimal(str(trade.price))
                 quote: Decimal = amount * price
@@ -166,12 +166,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         wac = price
                     else:
                         wac = (wac*qty + quote) / (qty + amount)
-            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}") # BYAO DEBU
+            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}")  # BYAO DEBU
         if qty == 0:
             self._wac = self._market_info.get_mid_price()
         else:
             self._wac = wac
-        self.logger().info(f"_wac set to {self._wac}") # BYAO DEBU
+        self.logger().info(f"_wac set to {self._wac}")  # BYAO DEBU
 
     @property
     def market_info(self):

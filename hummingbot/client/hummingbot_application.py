@@ -103,7 +103,7 @@ class HummingbotApplication(*commands):
         self.market_trading_pair_tuples: List[MarketTradingPairTuple] = []
         self.clock: Optional[Clock] = None
 
-        self.init_time: int = int(time.time() * 1e3)
+        self.init_time: int = int((time.time() - 86400 * 7) * 1e3)  # BYAO HACK only  , int(time.time() * 1e3)
         self.start_time: Optional[int] = None
         self.assets: Optional[Set[str]] = set()
         self.starting_balances = {}
