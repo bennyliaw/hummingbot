@@ -150,7 +150,27 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
     def did_start(self):
         self.logger().info("PMM started, markets ready") # BYAO DEBUG
-        self._wac = self._market_info.get_mid_price()
+        from hummingbot.client.hummingbot_application import HummingbotApplication
+        hb = HummingbotApplication.main_application()
+        queried_trades = hb._get_trades_from_session(hb.init_time, config_file_path=hb.strategy_file_name)
+        qty: Decimal = Decimal(0)
+        wac: Decimal = Decimal(0)
+        if len(queried_trades) > 0:
+            for trade in queries_trades:
+                amount: Decimal = Decimal(str(trade.amount))
+                price: Decimal = Decimal(str(trade.price))
+                quote: Decimal = amount * price
+                if trade.trade_type == TradeType.BUY.name:
+                    if qty == 0:
+                        qty = amount
+                        wac = price
+                    else:
+                        wac = (wac*qty + quote) / (qty + amount)
+            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}") # BYAO DEBU
+        if qty == 0:
+            self._wac = self._market_info.get_mid_price()
+        else:
+            self._wac = wac
         self.logger().info(f"_wac set to {self._wac}") # BYAO DEBU
 
     @property
