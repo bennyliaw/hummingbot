@@ -569,6 +569,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         df_lines = assets_df.to_string(index=False, header=False,
                                        formatters={0: ("{:<" + str(first_col_length) + "}").format}).split("\n")
         lines.extend(["", "  Assets:"] + ["    " + line for line in df_lines])
+        lines.extend([f"  * WAC: {self._wac}"])
 
         # See if there're any open orders.
         if len(self.active_orders) > 0:
