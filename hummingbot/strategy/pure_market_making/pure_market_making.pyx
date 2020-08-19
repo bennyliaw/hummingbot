@@ -155,6 +155,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         queried_trades = hb._get_trades_from_session(hb.init_time, config_file_path=hb.strategy_file_name)
         qty: Decimal = Decimal(0)
         wac: Decimal = Decimal(0)
+        base_balance: Decimal = self._market_info.base_balance()
+        current_price: Decimal = self._market_info.get_mid_price()
         if len(queried_trades) > 0:
             for trade in queried_trades:
                 amount: Decimal = Decimal(str(trade.amount))
@@ -168,9 +170,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         wac = (wac*qty + quote) / (qty + amount)
             self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}")  # BYAO DEBU
         if qty == 0:
-            self._wac = self._market_info.get_mid_price()
-        else:
+            self._wac = current_price
+        elif qty >= base_balance:
             self._wac = wac
+        else:
+            self._wac = (wac * qty + (base_balance - qty) * current_price) / base_balance
+            self.logger().info(f"Averaging with {qty} into {base_balance} with current price {current_price} to : {self._wac}")  # BYAO DEBU
         self.logger().info(f"_wac set to {self._wac}")  # BYAO DEBU
 
     @property
@@ -501,11 +506,15 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         total_in_quote = base_value + quote_balance
         base_ratio = base_value / total_in_quote if total_in_quote > 0 else 0
         quote_ratio = quote_balance / total_in_quote if total_in_quote > 0 else 0
+        wac = float(self._wac)
+        cost = wac * base_balance
         data=[
             ["", base_asset, quote_asset],
             ["Total Balance", round(base_balance, 4), round(quote_balance, 4)],
             ["Available Balance", round(available_base_balance, 4), round(available_quote_balance, 4)],
-            [f"Current Value ({quote_asset})", round(base_value, 4), round(quote_balance, 4)]
+            [f"Cost (WAC: {round(wac, 4)}", round(cost, 4), ""],
+            [f"Current Value ({quote_asset})", round(base_value, 4), round(quote_balance, 4)],
+
         ]
         if to_show_current_pct:
             data.append(["Current %", f"{base_ratio:.1%}", f"{quote_ratio:.1%}"])
