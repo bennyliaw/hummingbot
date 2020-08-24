@@ -156,7 +156,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         queried_trades = hb._get_trades_from_session(hb.init_time, config_file_path=hb.strategy_file_name)
         qty: Decimal = Decimal(0)
         wac: Decimal = Decimal(0)
-        base_balance: Decimal = self._market_info.base_balance()
+        base_balance: Decimal = self._market_info.base_balance
         current_price: Decimal = self._market_info.get_mid_price()
         if len(queried_trades) > 0:
             for trade in queried_trades:
@@ -169,7 +169,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         wac = price
                     else:
                         wac = (wac*qty + quote) / (qty + amount)
-            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}")  # BYAO DEBU
+                        qty += amount
+            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}, traded qty: {qty}")  # BYAO DEBU
         if qty == 0:
             self._wac = current_price
         elif qty >= base_balance:
@@ -513,7 +514,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ["", base_asset, quote_asset],
             ["Total Balance", round(base_balance, 4), round(quote_balance, 4)],
             ["Available Balance", round(available_base_balance, 4), round(available_quote_balance, 4)],
-            [f"Cost (WAC: {round(wac, 4)}", round(cost, 4), ""],
+            [f"Cost (WAC: {round(wac, 8)})", round(cost, 4), ""],
             [f"Current Value ({quote_asset})", round(base_value, 4), round(quote_balance, 4)],
 
         ]
