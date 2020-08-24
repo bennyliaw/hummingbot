@@ -48,6 +48,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         double _status_report_interval
         int64_t _logging_options
         object _wac
+        object _last_buying_price
 
     cdef object c_get_mid_price(self)
     cdef object c_create_base_proposal(self)
@@ -56,6 +57,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     cdef c_apply_price_band(self, object proposal)
     cdef c_apply_ping_pong(self, object proposal)
     cdef c_apply_order_price_modifiers(self, object proposal)
+    cdef c_apply_filter_unprofitable(self, object proposal)
     cdef c_apply_order_size_modifiers(self, object proposal)
     cdef c_apply_inventory_skew(self, object proposal)
     cdef c_apply_budget_constraint(self, object proposal)

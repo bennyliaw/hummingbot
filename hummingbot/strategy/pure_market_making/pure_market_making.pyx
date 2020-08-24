@@ -140,6 +140,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._last_timestamp = 0
         self._status_report_interval = status_report_interval
         self._wac = Decimal(0)
+        self._last_buying_price = Decimal(0)
 
         self.logger().info("Init _wac 0")  # BYAO DEBUG
 
@@ -644,6 +645,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.c_apply_order_levels_modifiers(proposal)
                 # 3. Apply functions that modify orders price
                 self.c_apply_order_price_modifiers(proposal)
+                # 3a. Filter unprofitable sells
+                self.c_apply_filter_unprofitable(proposal)
                 # 4. Apply functions that modify orders size
                 self.c_apply_order_size_modifiers(proposal)
                 # 5. Apply budget constraint, i.e. can't buy/sell more than what you have.
@@ -748,6 +751,22 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         if self._add_transaction_costs_to_orders:
             self.c_apply_add_transaction_costs(proposal)
+
+    cdef c_apply_filter_unprofitable(self, proposal):
+        self.logger().info(f"Try apply filter unprofitable")
+        toRemove: int = 0
+        for sell in proposal.sells:
+            if sell.price < self._wac and (self._last_buying_price > 0 and sell.price < self._last_buying_price):
+                toRemove += 1
+                self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac}, last price: {self._last_buying_price} will be removed, toRemove={toRemove}")
+        if toRemove > 0:
+            proposal.sells = proposal.sells[toRemove:]
+            self._ping_pong_warning_lines.extend(
+                [f"  WAC filter removed {toRemove} unprofitable orders."]
+            )
+            self.notify_hb_app(
+                f"  WAC filter removed {toRemove} unprofitable orders."
+            )
 
     cdef c_apply_order_size_modifiers(self, object proposal):
         if self._inventory_skew_enabled:
@@ -901,6 +920,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 wac = (self._wac * self._market_info.base_balance + order_filled_event.price * order_filled_event.amount) / (self.market_info.base_balance + order_filled_event.amount)
                 self.logger().info(f"** wac changed from {self._wac} to {wac}")
                 self._wac = wac
+                self._last_buying_price = order_filled_event.price
 
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
