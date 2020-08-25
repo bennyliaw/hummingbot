@@ -777,11 +777,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self.notify_hb_app(
                 f"  WAC filter removed {toRemove} unprofitable orders."
             )
-            if self._filled_buys_balance > 0:
-                self._filled_buys_balance -= 1
-                self.notify_hb_app(
-                    f"  Restoring 1 ping pong buy to {self._filled_buys_balance}."
-                )
+#            if self._filled_buys_balance > 0:
+#                self._filled_buys_balance -= 1
+#                self.notify_hb_app(
+#                    f"  Restoring 1 ping pong buy to {self._filled_buys_balance}."
+#                )
 
         toRemoveBuy: int = 0
         for buy in proposal.buys:
@@ -800,11 +800,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."
             )
 
-            if self._filled_sells_balance > 0:
-                self._filled_sells_balance -= 1
-                self.notify_hb_app(
-                    f"  Restoring 1 ping pong sell to {self._filled_sells_balance}."
-                )
+#            if self._filled_sells_balance > 0:
+#                self._filled_sells_balance -= 1
+#                self.notify_hb_app(
+#                    f"  Restoring 1 ping pong sell to {self._filled_sells_balance}."
+#                )
 
 
     cdef c_apply_order_size_modifiers(self, object proposal):
