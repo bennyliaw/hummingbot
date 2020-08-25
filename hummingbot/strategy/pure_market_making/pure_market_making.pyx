@@ -171,7 +171,15 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     else:
                         wac = (wac*qty + quote) / (qty + amount)
                         qty += amount
-            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}, traded qty: {qty}")  # BYAO DEBU
+            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac}, traded qty: {qty}")  # BYAO DEBUG
+            for trade in reversed(queried_trades):
+                if trade.trade_type == TradeType.SELL.name and self._last_selling_price == 0:
+                    self._last_selling_price = Decimal(trade.price)
+                    self.logger().info(f"Setting _last_selling_price to {trade.price}")
+                elif trade.trade_type == TradeType.BUY.name and self._last_buying_price == 0:
+                    self._last_buying_price = Decimal(trade.price)
+                    self.logger().info(f"Setting _last_buying_price to {trade.price}")
+
         if qty == 0:
             self._wac = current_price
         elif qty >= base_balance:
@@ -769,6 +777,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self.notify_hb_app(
                 f"  WAC filter removed {toRemove} unprofitable orders."
             )
+            if self._filled_buys_balance > 0:
+                self._filled_buys_balance -= 1
+                self.notify_hb_app(
+                    f"  Restoring 1 ping pong buy to {self._filled_buys_balance}."
+                )
 
         toRemoveBuy: int = 0
         for buy in proposal.buys:
@@ -786,6 +799,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self.notify_hb_app(
                 f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."
             )
+
+            if self._filled_sells_balance > 0:
+                self._filled_sells_balance -= 1
+                self.notify_hb_app(
+                    f"  Restoring 1 ping pong sell to {self._filled_sells_balance}."
+                )
+
 
     cdef c_apply_order_size_modifiers(self, object proposal):
         if self._inventory_skew_enabled:
