@@ -141,6 +141,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._status_report_interval = status_report_interval
         self._wac = Decimal(0)
         self._last_buying_price = Decimal(0)
+        self._last_selling_price = Decimal(0)
 
         self.logger().info("Init _wac 0")  # BYAO DEBUG
 
@@ -757,7 +758,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self.logger().info(f"Try apply filter unprofitable")
         toRemove: int = 0
         for sell in proposal.sells:
-            if sell.price < self._wac * Decimal(1.005) and (self._last_buying_price == 0 or sell.price < self._last_buying_price * Decimal(1.005)):
+            if sell.price < self._wac * Decimal(1.008) and (self._last_buying_price == 0 or sell.price < self._last_buying_price * Decimal(1.008)):
                 toRemove += 1
                 self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac}, last price: {self._last_buying_price} will be removed, toRemove={toRemove}")
         if toRemove > 0:
@@ -767,6 +768,22 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             )
             self.notify_hb_app(
                 f"  WAC filter removed {toRemove} unprofitable orders."
+            )
+
+        toRemoveBuy: int = 0
+        for buy in proposal.buys:
+            if buy.price < self._wac * Decimal(0.98):
+                continue
+            if (self._last_selling_price != 0 and buy.price > self._last_selling_price * Decimal(0.992)):
+                toRemoveBuy += 1
+
+        if toRemoveBuy > 0:
+            proposal.buys = proposal.buys[toRemoveBuy:]
+            self._ping_pong_warning_lines.extend(
+                [f"  WAC filter removed {toRemove} unprofitable BUY orders."]
+            )
+            self.notify_hb_app(
+                f"  WAC filter removed {toRemove} unprofitable BUY orders."
             )
 
     cdef c_apply_order_size_modifiers(self, object proposal):
@@ -930,6 +947,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
             else:
+                self._last_selling_price = order_filled_event.price
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
                         logging.INFO,
