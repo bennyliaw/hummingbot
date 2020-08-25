@@ -775,15 +775,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if buy.price < self._wac * Decimal(0.98):
                 continue
             if (self._last_selling_price != 0 and buy.price > self._last_selling_price * Decimal(0.992)):
+                self.logger().info(f"BUY Order price higher than last sell, price: {buy.price} vs wac: {self._wac}, last price: {self._last_selling_price} will be removed, toRemoveBuy={toRemoveBuy}")
                 toRemoveBuy += 1
 
         if toRemoveBuy > 0:
             proposal.buys = proposal.buys[toRemoveBuy:]
             self._ping_pong_warning_lines.extend(
-                [f"  WAC filter removed {toRemove} unprofitable BUY orders."]
+                [f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."]
             )
             self.notify_hb_app(
-                f"  WAC filter removed {toRemove} unprofitable BUY orders."
+                f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."
             )
 
     cdef c_apply_order_size_modifiers(self, object proposal):
