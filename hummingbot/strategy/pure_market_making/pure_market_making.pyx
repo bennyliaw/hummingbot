@@ -757,7 +757,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self.logger().info(f"Try apply filter unprofitable")
         toRemove: int = 0
         for sell in proposal.sells:
-            if sell.price < self._wac and (self._last_buying_price > 0 and sell.price < self._last_buying_price):
+            if sell.price < self._wac * Decimal(1.005) and (self._last_buying_price == 0 or sell.price < self._last_buying_price * Decimal(1.005)):
                 toRemove += 1
                 self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac}, last price: {self._last_buying_price} will be removed, toRemove={toRemove}")
         if toRemove > 0:
