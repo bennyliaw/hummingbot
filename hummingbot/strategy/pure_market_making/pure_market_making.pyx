@@ -175,10 +175,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             for trade in reversed(queried_trades):
                 if trade.trade_type == TradeType.SELL.name and self._last_selling_price == 0:
                     self._last_selling_price = Decimal(trade.price)
-                    self.logger().info(f"Setting _last_selling_price to {trade.price}")
+                    self.logger().info(f"Setting _last_selling_price to {self._last_selling_price}")
                 elif trade.trade_type == TradeType.BUY.name and self._last_buying_price == 0:
                     self._last_buying_price = Decimal(trade.price)
-                    self.logger().info(f"Setting _last_buying_price to {trade.price}")
+                    self.logger().info(f"Setting _last_buying_price to {self._last_buying_price}")
 
         if qty == 0:
             self._wac = current_price
