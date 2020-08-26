@@ -70,7 +70,8 @@ class StatusCommand:
     def strategy_status(self):
         if global_config_map.get("paper_trade_enabled").value:
             self._notify("\n  Paper Trading ON: All orders are simulated, and no real orders are placed.")
-        self._notify(f"* Management port: {self.management_port} *")
+        if hasattr(self, "management_port"):
+            self._notify(f"* Management port: {self.management_port} *")
         self._notify(self.strategy.format_status() + "\n")
         self.application_warning()
         if self._script_iterator is not None:
