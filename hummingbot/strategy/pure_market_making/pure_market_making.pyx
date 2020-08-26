@@ -796,9 +796,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self.logger().info(f"Try apply filter unprofitable")
         toRemove: int = 0
         for sell in proposal.sells:
-            if sell.price < self._wac * Decimal(1.004) and (self._last_buying_price == 0 or sell.price < self._last_buying_price * Decimal(1.004)):
-                toRemove += 1
-                self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac:.6g}, last buying price: {self._last_buying_price:.6g} will be removed, toRemove={toRemove}")
+            if sell.price > self._wac * Decimal(1.02):
+                continue
+            if not self._buy_trades or sell.price > self._buy_trades[-1].price * 1.004:
+                continue
+            toRemove += 1
+            self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac:.6g}, last buy price: {self._buy_trades[-1].price:.6g} will be removed, toRemove={toRemove}")
         if toRemove > 0:
             proposal.sells = proposal.sells[toRemove:]
             self._ping_pong_warning_lines.extend(
@@ -817,9 +820,10 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for buy in proposal.buys:
             if buy.price < self._wac * Decimal(0.98):
                 continue
-            if (self._last_selling_price != 0 and buy.price > self._last_selling_price * Decimal(0.996)):
-                self.logger().info(f"BUY Order price higher than last sell, price: {buy.price} vs wac: {self._wac:.6g}, last selling price: {self._last_selling_price:.6g} will be removed, toRemoveBuy={toRemoveBuy}")
-                toRemoveBuy += 1
+            if not self._sell_trades or buy.price < self._sell_trades[-1].price * .996:
+                continue
+            toRemoveBuy += 1
+            self.logger().info(f"BUY Order price higher than top sell, price: {buy.price} vs wac: {self._wac:.6g}, last sell price: {self._sell_trades[-1].price:.6g} will be removed, toRemoveBuy={toRemoveBuy}")
 
         if toRemoveBuy > 0:
             proposal.buys = proposal.buys[toRemoveBuy:]
