@@ -620,6 +620,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                                        formatters={0: ("{:<" + str(first_col_length) + "}").format}).split("\n")
         lines.extend(["", "  Assets:"] + ["    " + line for line in df_lines])
         lines.extend([f"  * my_last_buy: {self._last_buying_price:.6g}   * last my_last_sell: {self._last_selling_price:.6g}"])
+        lines.extend([f"  * my_top_buy: {self._buy_trades and self._buy_trades[-1] or 0:.6g}   * last my_top_sell: {self._sell_trades and self._sell_trades[-1] or 0:.6g}"])
 
         # See if there're any open orders.
         if len(self.active_orders) > 0:
@@ -1014,17 +1015,17 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
                 self._buy_trades.append(trade)
-                trade_amount = trade.amount
-                while self._sell_trades and trade_amount > 0:
+                remaining_amount = trade.amount
+                while self._sell_trades and remaining_amount > 0:
                     t: Trade = self._sell_trades.pop()
-                    if t.amount > trade_amount:
-                        t = t._replace(amount = t.amount - trade_amount)
+                    if t.amount > remaining_amount:
+                        t = t._replace(amount = t.amount - remaining_amount)
                         self._sell_trades.append(t)
-                        self.logger().info(f"Reduced last sell trade amount to {t.amount}")
-                        trade_amount = 0
+                        self.logger().info(f"** Reduced last sell trade amount to {t.amount} for price {t.price}, remaining amount {remaining_amount}")
+                        remaining_amount = 0
                     else:
-                        trade_amount -= t.amount
-                        self.logger().info(f"Pop last sell trade amount of {t.amount}")
+                        remaining_amount -= t.amount
+                        self.logger().info(f"** Pop last sell trade amount of {t.amount} and price {t.price}, remaining amount {remaining_amount}")
 
             else:
                 self._last_selling_price = order_filled_event.price
@@ -1035,17 +1036,17 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
                 self._sell_trades.append(trade)
-                trade_amount = trade.amount
-                while self._buy_trades and trade_amount > 0:
+                remaining_amount = trade.amount
+                while self._buy_trades and remaining_amount > 0:
                     t: Trade = self._buy_trades.pop()
-                    if t.amount > trade_amount:
-                        t = t._replace(amount = t.amount - trade_amount)
+                    if t.amount > remaining_amount:
+                        t = t._replace(amount = t.amount - remaining_amount)
                         self._buy_trades.append(t)
-                        self.logger().info(f"Reduced last buy trade amount to {t.amount}")
-                        trade_amount = 0
+                        self.logger().info(f"** Reduced last buy trade amount to {t.amount} for price {t.price}, remaining amount {remaining_amount}")
+                        remaining_amount = 0
                     else:
                         trade_amount -= t.amount
-                        self.logger().info(f"Pop last buy trade amount of {t.amount}")
+                        self.logger().info(f"** Pop last buy trade amount of {t.amount} and price {t.price}, remaining amount {remaining_amount}")
 
     cdef c_did_complete_buy_order(self, object order_completed_event):
         cdef:
