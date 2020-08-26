@@ -818,7 +818,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 #                    f"  Restoring 1 ping pong sell to {self._filled_sells_balance}."
 #                )
 
-
     cdef c_apply_order_size_modifiers(self, object proposal):
         if self._inventory_skew_enabled:
             self.c_apply_inventory_skew(proposal)
@@ -962,7 +961,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             str order_id = order_filled_event.order_id
             object market_info = self._sb_order_tracker.c_get_shadow_market_pair_from_order_id(order_id)
             tuple order_fill_record
-        def event_to_trade(order_filled_event: OrderFilledEvent):
+
+        def event_to_trade(order_filled_event):
             return Trade(order_filled_event.trading_pair,
                          order_filled_event.trade_type,
                          order_filled_event.price,
@@ -979,7 +979,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             trade: Trade = event_to_trade(order_filled_event)
 
             if order_filled_event.trade_type is TradeType.BUY:
-                self._buy_trades.append(trade)
+
                 wac = (self._wac * self._market_info.base_balance + order_filled_event.price * order_filled_event.amount) / (self.market_info.base_balance + order_filled_event.amount)
                 self.logger().info(f"** wac changed from {self._wac:.8g} to {wac:.8g}")
                 self._wac = wac
@@ -991,8 +991,20 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"({market_info.trading_pair}) Maker buy order of "
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
-            else:
                 self._buy_trades.append(trade)
+                trade_amount = trade.amount
+                while self._sell_trades and trade_amount > 0:
+                    t: Trade = self._sell_trades.pop()
+                    if t.amount > trade_amount:
+                        t = t._replace(amount, t.amount - trade_amount)
+                        self._sell_trades.append(t)
+                        self.logger().info(f"Reduced last sell trade amount to {t.amount}")
+                        trade_amount = 0
+                    else:
+                        trade_amount -= t.amount
+                        self.logger().info(f"Pop last sell trade amount of {t.amount}")
+
+            else:
                 self._last_selling_price = order_filled_event.price
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
@@ -1000,6 +1012,18 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"({market_info.trading_pair}) Maker sell order of "
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
+                self._sell_trades.append(trade)
+                trade_amount = trade.amount
+                while self._buy_trades and trade_amount > 0:
+                    t: Trade = self._buy_trades.pop()
+                    if t.amount > trade_amount:
+                        t = t._replace(amount, t.amount - trade_amount)
+                        self._buy_trades.append(t)
+                        self.logger().info(f"Reduced last buy trade amount to {t.amount}")
+                        trade_amount = 0
+                    else:
+                        trade_amount -= t.amount
+                        self.logger().info(f"Pop last buy trade amount of {t.amount}")
 
     cdef c_did_complete_buy_order(self, object order_completed_event):
         cdef:
