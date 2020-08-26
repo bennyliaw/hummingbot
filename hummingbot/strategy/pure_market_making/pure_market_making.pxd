@@ -50,6 +50,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         object _wac
         object _last_buying_price
         object _last_selling_price
+        object _sell_trades
+        object _buy_trades
 
     cdef object c_get_mid_price(self)
     cdef object c_create_base_proposal(self)

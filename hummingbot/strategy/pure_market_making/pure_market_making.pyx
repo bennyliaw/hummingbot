@@ -1,3 +1,4 @@
+from collections import deque
 from decimal import Decimal
 import logging
 import pandas as pd
@@ -16,6 +17,7 @@ from hummingbot.core.clock cimport Clock
 from hummingbot.core.event.events import TradeType
 from hummingbot.core.data_type.limit_order cimport LimitOrder
 from hummingbot.core.data_type.limit_order import LimitOrder
+from hummingbot.core.data_type.trade import Trade
 from hummingbot.core.network_iterator import NetworkStatus
 from hummingbot.market.market_base cimport MarketBase
 from hummingbot.market.market_base import (
@@ -142,6 +144,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._wac = Decimal(0)
         self._last_buying_price = Decimal(0)
         self._last_selling_price = Decimal(0)
+        self._sell_trades = deque()
+        self._buy_trades = deque()
 
         self.logger().info("Init _wac 0")  # BYAO DEBUG
 
@@ -192,6 +196,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @property
     def market_info(self):
         return self._market_info
+
+    @property
+    def sell_trades(self):
+        return self._sell_trades
+
+    @property
+    def buy_trades(self):
+        return self._buy_trades
 
     @property
     def filled_buys_balance(self) -> int:
@@ -950,12 +962,24 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             str order_id = order_filled_event.order_id
             object market_info = self._sb_order_tracker.c_get_shadow_market_pair_from_order_id(order_id)
             tuple order_fill_record
+        def event_to_trade(order_filled_event: OrderFilledEvent):
+            return Trade(order_filled_event.trading_pair,
+                         order_filled_event.trade_type,
+                         order_filled_event.price,
+                         order_filled_event.amount,
+                         order_filled_event.order_type,
+                         '',
+                         order_filled_event.timestamp,
+                         order_filled_event.trade_fee)
 
         if market_info is not None:
             limit_order_record = self._sb_order_tracker.c_get_shadow_limit_order(order_id)
             order_fill_record = (limit_order_record, order_filled_event)
 
+            trade: Trade = event_to_trade(order_filled_event)
+
             if order_filled_event.trade_type is TradeType.BUY:
+                self._buy_trades.append(trade)
                 wac = (self._wac * self._market_info.base_balance + order_filled_event.price * order_filled_event.amount) / (self.market_info.base_balance + order_filled_event.amount)
                 self.logger().info(f"** wac changed from {self._wac:.8g} to {wac:.8g}")
                 self._wac = wac
@@ -968,6 +992,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         f"{order_filled_event.amount} {market_info.base_asset} filled."
                     )
             else:
+                self._buy_trades.append(trade)
                 self._last_selling_price = order_filled_event.price
                 if self._logging_options & self.OPTION_LOG_MAKER_ORDER_FILLED:
                     self.log_with_clock(
