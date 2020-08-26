@@ -187,13 +187,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                          None)
                 if trade.trade_type == TradeType.SELL.name:
                     if len(self._sell_trades) < 3:
-                        self._sell_trades.append_left(t)
+                        self._sell_trades.appendleft(t)
                     if self._last_selling_price == 0:
                         self._last_selling_price = Decimal(trade.price)
                         self.logger().info(f"Setting _last_selling_price to {self._last_selling_price:.6g}")
                 elif trade.trade_type == TradeType.BUY.name:
                     if len(self._buy_trades) < 3:
-                        self._buy_trades.append_left(t)
+                        self._buy_trades.appendleft(t)
                     if self._last_buying_price == 0:
                         self._last_buying_price = Decimal(trade.price)
                         self.logger().info(f"Setting _last_buying_price to {self._last_buying_price:.6g}")
