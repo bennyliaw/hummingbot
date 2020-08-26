@@ -620,7 +620,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                                        formatters={0: ("{:<" + str(first_col_length) + "}").format}).split("\n")
         lines.extend(["", "  Assets:"] + ["    " + line for line in df_lines])
         lines.extend([f"  * my_last_buy: {self._last_buying_price:.6g}   * last my_last_sell: {self._last_selling_price:.6g}"])
-        lines.extend([f"  * my_top_buy: {self._buy_trades and self._buy_trades[-1] or 0:.6g}   * last my_top_sell: {self._sell_trades and self._sell_trades[-1] or 0:.6g}"])
+        lines.extend([f"  * my_top_buy: {self._buy_trades and self._buy_trades[-1].price or 0:.6g}   * last my_top_sell: {self._sell_trades and self._sell_trades[-1].price or 0:.6g}"])
 
         # See if there're any open orders.
         if len(self.active_orders) > 0:
