@@ -996,7 +996,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 while self._sell_trades and trade_amount > 0:
                     t: Trade = self._sell_trades.pop()
                     if t.amount > trade_amount:
-                        t = t._replace(amount, t.amount - trade_amount)
+                        t = t._replace(amount = t.amount - trade_amount)
                         self._sell_trades.append(t)
                         self.logger().info(f"Reduced last sell trade amount to {t.amount}")
                         trade_amount = 0
@@ -1017,7 +1017,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 while self._buy_trades and trade_amount > 0:
                     t: Trade = self._buy_trades.pop()
                     if t.amount > trade_amount:
-                        t = t._replace(amount, t.amount - trade_amount)
+                        t = t._replace(amount = t.amount - trade_amount)
                         self._buy_trades.append(t)
                         self.logger().info(f"Reduced last buy trade amount to {t.amount}")
                         trade_amount = 0
