@@ -172,7 +172,7 @@ class HistoryCommand:
         else:
             # Query for maximum number of trades to display + 1
             queried_trades: List[TradeFill] = self._get_trades_from_session(self.init_time,
-                                                                            MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT + 1,
+                                                                            MAXIMUM_TRADE_FILLS_DISPLAY_OUTPUT,
                                                                             self.strategy_file_name)
             if self.strategy_name == "celo_arb":
                 celo_trades = self.strategy.celo_orders_to_trade_fills()
