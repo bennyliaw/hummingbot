@@ -1045,7 +1045,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         self.logger().info(f"** Reduced last buy trade amount to {t.amount} for price {t.price}, remaining amount {remaining_amount}")
                         remaining_amount = 0
                     else:
-                        trade_amount -= t.amount
+                        remaining_amount -= t.amount
                         self.logger().info(f"** Pop last buy trade amount of {t.amount} and price {t.price}, remaining amount {remaining_amount}")
 
     cdef c_did_complete_buy_order(self, object order_completed_event):
