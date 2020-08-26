@@ -171,14 +171,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     else:
                         wac = (wac*qty + quote) / (qty + amount)
                         qty += amount
-            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac:.8}, traded qty: {qty}")  # BYAO DEBUG
+            self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac:.8f}, traded qty: {qty}")  # BYAO DEBUG
             for trade in reversed(queried_trades):
                 if trade.trade_type == TradeType.SELL.name and self._last_selling_price == 0:
                     self._last_selling_price = Decimal(trade.price)
-                    self.logger().info(f"Setting _last_selling_price to {self._last_selling_price:.6}")
+                    self.logger().info(f"Setting _last_selling_price to {self._last_selling_price:.6f}")
                 elif trade.trade_type == TradeType.BUY.name and self._last_buying_price == 0:
                     self._last_buying_price = Decimal(trade.price)
-                    self.logger().info(f"Setting _last_buying_price to {self._last_buying_price:.6}")
+                    self.logger().info(f"Setting _last_buying_price to {self._last_buying_price:.6f}")
 
         if qty == 0:
             self._wac = current_price
@@ -186,8 +186,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self._wac = wac
         else:
             self._wac = (wac * qty + (base_balance - qty) * current_price) / base_balance
-            self.logger().info(f"Averaging with {qty} into {base_balance} with current price {current_price:.8} to : {self._wac:.8}")  # BYAO DEBU
-        self.logger().info(f"_wac set to {self._wac:.8}")  # BYAO DEBU
+            self.logger().info(f"Averaging with {qty} into {base_balance} with current price {current_price:.8f} to : {self._wac:.8f}")  # BYAO DEBU
+        self.logger().info(f"_wac set to {self._wac:.8f}")  # BYAO DEBU
 
     @property
     def market_info(self):
@@ -523,7 +523,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             ["", base_asset, quote_asset],
             ["Total Balance", round(base_balance, 4), round(quote_balance, 4)],
             ["Available Balance", round(available_base_balance, 4), round(available_quote_balance, 4)],
-            [f"Cost (WAC: {wac:.6})", round(cost, 4), ""],
+            [f"Cost (WAC: {wac:.6f})", round(cost, 4), ""],
             [f"Current Value ({quote_asset})", round(base_value, 4), round(quote_balance, 4)],
 
         ]
@@ -589,7 +589,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         df_lines = assets_df.to_string(index=False, header=False,
                                        formatters={0: ("{:<" + str(first_col_length) + "}").format}).split("\n")
         lines.extend(["", "  Assets:"] + ["    " + line for line in df_lines])
-        lines.extend([f"  * my_last_buy: {self._last_buying_price:.6}   * last my_last_sell: {self._last_selling_price:.6}"])
+        lines.extend([f"  * my_last_buy: {self._last_buying_price:.6f}   * last my_last_sell: {self._last_selling_price:.6f}"])
 
         # See if there're any open orders.
         if len(self.active_orders) > 0:
@@ -768,7 +768,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for sell in proposal.sells:
             if sell.price < self._wac * Decimal(1.004) and (self._last_buying_price == 0 or sell.price < self._last_buying_price * Decimal(1.004)):
                 toRemove += 1
-                self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac:.6}, last buying price: {self._last_buying_price:.6} will be removed, toRemove={toRemove}")
+                self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac:.6f}, last buying price: {self._last_buying_price:.6f} will be removed, toRemove={toRemove}")
         if toRemove > 0:
             proposal.sells = proposal.sells[toRemove:]
             self._ping_pong_warning_lines.extend(
@@ -788,7 +788,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if buy.price < self._wac * Decimal(0.98):
                 continue
             if (self._last_selling_price != 0 and buy.price > self._last_selling_price * Decimal(0.996)):
-                self.logger().info(f"BUY Order price higher than last sell, price: {buy.price} vs wac: {self._wac:.6}, last selling price: {self._last_selling_price:.6} will be removed, toRemoveBuy={toRemoveBuy}")
+                self.logger().info(f"BUY Order price higher than last sell, price: {buy.price} vs wac: {self._wac:.6f}, last selling price: {self._last_selling_price:.6f} will be removed, toRemoveBuy={toRemoveBuy}")
                 toRemoveBuy += 1
 
         if toRemoveBuy > 0:
@@ -957,7 +957,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             if order_filled_event.trade_type is TradeType.BUY:
                 wac = (self._wac * self._market_info.base_balance + order_filled_event.price * order_filled_event.amount) / (self.market_info.base_balance + order_filled_event.amount)
-                self.logger().info(f"** wac changed from {self._wac:.8} to {wac:.8}")
+                self.logger().info(f"** wac changed from {self._wac:.8f} to {wac:.8f}")
                 self._wac = wac
                 self._last_buying_price = order_filled_event.price
 
