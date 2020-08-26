@@ -177,12 +177,30 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                         qty += amount
             self.logger().info(f"Calculated _wac from {len(queried_trades)} trades is {wac:.8g}, traded qty: {qty}")  # BYAO DEBUG
             for trade in reversed(queried_trades):
-                if trade.trade_type == TradeType.SELL.name and self._last_selling_price == 0:
-                    self._last_selling_price = Decimal(trade.price)
-                    self.logger().info(f"Setting _last_selling_price to {self._last_selling_price:.6g}")
-                elif trade.trade_type == TradeType.BUY.name and self._last_buying_price == 0:
-                    self._last_buying_price = Decimal(trade.price)
-                    self.logger().info(f"Setting _last_buying_price to {self._last_buying_price:.6g}")
+                t: Trade = Trade(trade.symbol,
+                         TradeType[trade.trade_type],
+                         float(trade.price),
+                         float(trade.amount),
+                         OrderType[trade.order_type],
+                         '',
+                         trade.timestamp,
+                         None)
+                if trade.trade_type == TradeType.SELL.name:
+                    if len(self._sell_trades) < 3:
+                        self._sell_trades.append_left(t)
+                    if self._last_selling_price == 0:
+                        self._last_selling_price = Decimal(trade.price)
+                        self.logger().info(f"Setting _last_selling_price to {self._last_selling_price:.6g}")
+                elif trade.trade_type == TradeType.BUY.name:
+                    if len(self._buy_trades) < 3:
+                        self._buy_trades.append_left(t)
+                    if self._last_buying_price == 0:
+                        self._last_buying_price = Decimal(trade.price)
+                        self.logger().info(f"Setting _last_buying_price to {self._last_buying_price:.6g}")
+                #if self._last_selling_price > 0 and self._last_buying_price > 0:
+                #    break
+                if len(self._sell_trades) >= 3 and len(self._buy_trades) >= 3:
+                    break
 
         if qty == 0:
             self._wac = current_price
@@ -965,8 +983,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         def event_to_trade(order_filled_event):
             return Trade(order_filled_event.trading_pair,
                          order_filled_event.trade_type,
-                         order_filled_event.price,
-                         order_filled_event.amount,
+                         float(order_filled_event.price),
+                         float(order_filled_event.amount),
                          order_filled_event.order_type,
                          '',
                          order_filled_event.timestamp,
