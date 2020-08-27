@@ -797,8 +797,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self.logger().info(f"Try apply filter unprofitable")
         toRemove: int = 0
         for sell in proposal.sells:
-            if sell.price > self._wac * Decimal(1.02):
-                continue
+#            if sell.price > self._wac * Decimal(1.02):
+#                continue
             if not self._buy_trades or sell.price > self._buy_trades[-1].price * 1.004:
                 continue
             toRemove += 1
@@ -819,8 +819,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
         toRemoveBuy: int = 0
         for buy in proposal.buys:
-            if buy.price < self._wac * Decimal(0.98):
-                continue
+#            if buy.price < self._wac * Decimal(0.98):
+#                continue
             if not self._sell_trades or buy.price < self._sell_trades[-1].price * .996:
                 continue
             toRemoveBuy += 1
