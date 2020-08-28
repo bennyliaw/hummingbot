@@ -796,51 +796,25 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
     cdef c_apply_filter_unprofitable(self, proposal):
         self.logger().info(f"Try apply filter unprofitable")
-        toRemove: int = 0
-        for sell in proposal.sells:
-#            if sell.price > self._wac * Decimal(1.02):
-#                continue
-            if not self._buy_trades or sell.price >= self._buy_trades[-1].price * 1.002:
-                continue
-            toRemove += 1
-            self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac:.6g}, last buy price: {self._buy_trades[-1].price:.6g} will be removed, toRemove={toRemove}")
-        if toRemove > 0:
-            proposal.sells = proposal.sells[toRemove:]
-            self._ping_pong_warning_lines.extend(
-                [f"  WAC filter removed {toRemove} unprofitable orders."]
-            )
-#            self.notify_hb_app(
-#                f"  WAC filter removed {toRemove} unprofitable orders."
-#            )
-#            if self._filled_buys_balance > 0:
-#                self._filled_buys_balance -= 1
-#                self.notify_hb_app(
-#                    f"  Restoring 1 ping pong buy to {self._filled_buys_balance}."
-#                )
+        if len(proposal.sells) >= 1 and len(self._buy_trades) >= 1:
+            if proposal.sells[0].price < self._buy_trades[-1].price * 1.002:
+                adjust = self._buy_trades[-1].price * 1.0025 - proposal.sells[0].price
+                self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs last buy: {self._buy_trades[-1].price:.6g}, will shift={adjust:.6g}")
+                for sell in proposal.sells:
+                    sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
+                self._ping_pong_warning_lines.extend(
+                    [f"  Profitable filter shift SELL orders by {adjust}."]
+                )
+        if len(proposal.buys) >= 1 and len(self._sell_trades) >= 1:
+            if proposal.buys[0].price > self._sell_trades[-1].price * .998:
+                adjust = proposal.buys[0].price - self._sell_trades[-1].price * .9975
 
-        toRemoveBuy: int = 0
-        for buy in proposal.buys:
-#            if buy.price < self._wac * Decimal(0.98):
-#                continue
-            if not self._sell_trades or buy.price <= self._sell_trades[-1].price * .998:
-                continue
-            toRemoveBuy += 1
-            self.logger().info(f"BUY Order price higher than top sell, price: {buy.price} vs wac: {self._wac:.6g}, last sell price: {self._sell_trades[-1].price:.6g} will be removed, toRemoveBuy={toRemoveBuy}")
-
-        if toRemoveBuy > 0:
-            proposal.buys = proposal.buys[toRemoveBuy:]
-            self._ping_pong_warning_lines.extend(
-                [f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."]
-            )
-#            self.notify_hb_app(
-#                f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."
-#            )
-
-#            if self._filled_sells_balance > 0:
-#                self._filled_sells_balance -= 1
-#                self.notify_hb_app(
-#                    f"  Restoring 1 ping pong sell to {self._filled_sells_balance}."
-#                )
+                self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, will shift={adjust:.6g}")
+                for buy in proposal.buys:
+                    buy.price = market.c_quantize_order_price(self.trading_pair, buy.price - adjust)
+                self._ping_pong_warning_lines.extend(
+                    [f"  Profitable filter shift BUY orders by {adjust}."]
+                )
 
     cdef c_apply_order_size_modifiers(self, object proposal):
         if self._inventory_skew_enabled:
