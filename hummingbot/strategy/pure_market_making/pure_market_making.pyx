@@ -684,10 +684,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 proposal =self.c_create_base_proposal()
                 # 2. Apply functions that limit numbers of buys and sells proposal
                 self.c_apply_order_levels_modifiers(proposal)
-                # 3. Apply functions that modify orders price
-                self.c_apply_order_price_modifiers(proposal)
+
                 # 3a. Filter unprofitable sells
                 self.c_apply_filter_unprofitable(proposal)
+                # 3. Apply functions that modify orders price
+                self.c_apply_order_price_modifiers(proposal)
                 # 4. Apply functions that modify orders size
                 self.c_apply_order_size_modifiers(proposal)
                 # 5. Apply budget constraint, i.e. can't buy/sell more than what you have.
