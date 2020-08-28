@@ -799,7 +799,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for sell in proposal.sells:
 #            if sell.price > self._wac * Decimal(1.02):
 #                continue
-            if not self._buy_trades or sell.price > self._buy_trades[-1].price * 1.004:
+            if not self._buy_trades or sell.price >= self._buy_trades[-1].price * 1.002:
                 continue
             toRemove += 1
             self.logger().info(f"Order unprofitable, price: {sell.price} vs wac: {self._wac:.6g}, last buy price: {self._buy_trades[-1].price:.6g} will be removed, toRemove={toRemove}")
@@ -821,7 +821,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for buy in proposal.buys:
 #            if buy.price < self._wac * Decimal(0.98):
 #                continue
-            if not self._sell_trades or buy.price < self._sell_trades[-1].price * .996:
+            if not self._sell_trades or buy.price <= self._sell_trades[-1].price * .998:
                 continue
             toRemoveBuy += 1
             self.logger().info(f"BUY Order price higher than top sell, price: {buy.price} vs wac: {self._wac:.6g}, last sell price: {self._sell_trades[-1].price:.6g} will be removed, toRemoveBuy={toRemoveBuy}")
