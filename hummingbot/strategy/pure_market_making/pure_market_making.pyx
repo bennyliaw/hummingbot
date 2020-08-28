@@ -805,7 +805,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 for sell in proposal.sells:
                     sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
                 self._ping_pong_warning_lines.extend(
-                    [f"  Profitable filter shift SELL orders by {adjust}."]
+                    [f"  Profitable filter shift SELL orders by {adjust:.6g}."]
                 )
         if len(proposal.buys) >= 1 and len(self._sell_trades) >= 1:
             if proposal.buys[0].price > self._sell_trades[-1].price * .998:
@@ -815,7 +815,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 for buy in proposal.buys:
                     buy.price = market.c_quantize_order_price(self.trading_pair, buy.price - adjust)
                 self._ping_pong_warning_lines.extend(
-                    [f"  Profitable filter shift BUY orders by {adjust}."]
+                    [f"  Profitable filter shift BUY orders by {adjust:.6g}."]
                 )
 
     cdef c_apply_order_size_modifiers(self, object proposal):
