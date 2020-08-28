@@ -808,9 +808,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self._ping_pong_warning_lines.extend(
                 [f"  WAC filter removed {toRemove} unprofitable orders."]
             )
-            self.notify_hb_app(
-                f"  WAC filter removed {toRemove} unprofitable orders."
-            )
+#            self.notify_hb_app(
+#                f"  WAC filter removed {toRemove} unprofitable orders."
+#            )
 #            if self._filled_buys_balance > 0:
 #                self._filled_buys_balance -= 1
 #                self.notify_hb_app(
@@ -831,9 +831,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self._ping_pong_warning_lines.extend(
                 [f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."]
             )
-            self.notify_hb_app(
-                f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."
-            )
+#            self.notify_hb_app(
+#                f"  WAC filter removed {toRemoveBuy} unprofitable BUY orders."
+#            )
 
 #            if self._filled_sells_balance > 0:
 #                self._filled_sells_balance -= 1
@@ -933,7 +933,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             else:
                 own_sell_size = order.quantity
 
-        if len(proposal.buys) == 1:
+        if len(proposal.buys) >= 1: #BYAO TWEAK
             # Get the top bid price in the market using order_optimization_depth and your buy order volume
             top_bid_price = self._market_info.get_price_for_volume(
                 False, self._bid_order_optimization_depth + own_buy_size).result_price
@@ -946,10 +946,16 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             # If the price_above_bid is lower than the price suggested by the pricing proposal,
             # lower your price to this
-            lower_buy_price = min(proposal.buys[0].price, price_above_bid)
-            proposal.buys[0].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+            if price_above_bid < proposal.buys[0].price:
+                self._ping_pong_warning_lines.extend(
+                    [f"  Order Opt adjusted proposed BUY price {proposal.buys[0].price} to {price_above_bid}."]
+                )
+                proposal.buys[0].price = market.c_quantize_order_price(self.trading_pair, price_above_bid)
 
-        if len(proposal.sells) == 1:
+            #lower_buy_price = min(proposal.buys[0].price, price_above_bid)
+            #proposal.buys[0].price = market.c_quantize_order_price(self.trading_pair, lower_buy_price)
+
+        if len(proposal.sells) >= 1:
             # Get the top ask price in the market using order_optimization_depth and your sell order volume
             top_ask_price = self._market_info.get_price_for_volume(
                 True, self._ask_order_optimization_depth + own_sell_size).result_price
@@ -962,8 +968,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price to this
-            higher_sell_price = max(proposal.sells[0].price, price_below_ask)
-            proposal.sells[0].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
+            if price_below_ask > proposal.sells[0].price:
+                self._ping_pong_warning_lines.extend(
+                    [f"  Order Opt adjusted proposed SELL price {proposal.sells[0].price} to {price_below_ask}."]
+                )
+                proposal.sells[0].price = market.c_quantize_order_price(self.trading_pair, price_below_ask)
+
+            #higher_sell_price = max(proposal.sells[0].price, price_below_ask)
+            #proposal.sells[0].price = market.c_quantize_order_price(self.trading_pair, higher_sell_price)
 
     cdef object c_apply_add_transaction_costs(self, object proposal):
         cdef:
