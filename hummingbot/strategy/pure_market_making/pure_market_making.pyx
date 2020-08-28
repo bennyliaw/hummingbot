@@ -795,6 +795,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             self.c_apply_add_transaction_costs(proposal)
 
     cdef c_apply_filter_unprofitable(self, proposal):
+        cdef:
+            MarketBase market = self._market_info.market
         self.logger().info(f"Try apply filter unprofitable")
         if len(proposal.sells) >= 1 and len(self._buy_trades) >= 1:
             if proposal.sells[0].price < self._buy_trades[-1].price * 1.002:
