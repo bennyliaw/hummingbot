@@ -924,8 +924,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             object own_sell_size = s_decimal_zero
 
         # If there are multiple orders, do not jump prices
-        if self._order_levels > 1:
-            return
+        # BYAO HACK
+        #if self._order_levels > 1:
+        #    return
+
+        self.logger().info(f"Try price opt")
 
         for order in self.active_orders:
             if order.is_buy:
@@ -948,7 +951,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             # lower your price to this
             if price_above_bid < proposal.buys[0].price:
                 self._ping_pong_warning_lines.extend(
-                    [f"  Order Opt adjusted proposed BUY price {proposal.buys[0].price} to {price_above_bid}."]
+                    [f"  Order Opt adjusted proposed BUY price {proposal.buys[0].price} to {price_above_bid}, top_bid_price {top_bid_price}."]
                 )
                 proposal.buys[0].price = market.c_quantize_order_price(self.trading_pair, price_above_bid)
 
@@ -965,12 +968,13 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             )
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
+            self.logger().info(f"top_ask_price {top_ask_price} price_below_ask {price_below_ask} proposal sell {proposal.sells[0].price}")
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price to this
             if price_below_ask > proposal.sells[0].price:
                 self._ping_pong_warning_lines.extend(
-                    [f"  Order Opt adjusted proposed SELL price {proposal.sells[0].price} to {price_below_ask}."]
+                    [f"  Order Opt adjusted proposed SELL price {proposal.sells[0].price} to {price_below_ask}, top_ask_price {top_ask_price}."]
                 )
                 proposal.sells[0].price = market.c_quantize_order_price(self.trading_pair, price_below_ask)
 
