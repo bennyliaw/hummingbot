@@ -1138,6 +1138,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             tolerance = min(self._bid_spread, self._ask_spread) / 2
             # if spread diff is more than the tolerance or order quantities are different, return false.
             if abs(proposal - current)/current > tolerance: #BBYAO
+                self.logger().info(f"Will cancel as proposed diff ({abs(proposal - current)/current:.2%}) is > half min spread {tolerance:.2%}")
                 return False
         return True
 
@@ -1173,7 +1174,6 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.c_cancel_order(self._market_info, order.client_order_id)
         else:
             self.logger().info(f"Not cancelling active orders since difference between new order prices "
-                               f"{self._order_refresh_tolerance_pct:.2%} order_refresh_tolerance_pct")
                                f"and current order prices is within half min spread")
             self.set_timers()
 
