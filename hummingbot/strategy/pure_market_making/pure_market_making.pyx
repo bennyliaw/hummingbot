@@ -800,7 +800,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self.logger().info(f"Try apply filter unprofitable")
         if len(proposal.sells) >= 1 and len(self._buy_trades) >= 1:
             if proposal.sells[0].price < self._buy_trades[-1].price * 1.002:
-                adjust = Decimal(self._buy_trades[-1].price * 1.0025) - Decimal(proposal.sells[0].price)
+                adjust = Decimal(self._buy_trades[-1].price * 1.003) - Decimal(proposal.sells[0].price)
                 self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs last buy: {self._buy_trades[-1].price:.6g}, will shift={adjust:.6g}")
                 for sell in proposal.sells:
                     sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
@@ -809,7 +809,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 )
         if len(proposal.buys) >= 1 and len(self._sell_trades) >= 1:
             if proposal.buys[0].price > self._sell_trades[-1].price * .998:
-                adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price * .9975)
+                adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price * .997)
 
                 self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, will shift={adjust:.6g}")
                 for buy in proposal.buys:
@@ -923,6 +923,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             )
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
+            self.logger().info(f"top_bid_price {top_bid_price} price_above_bid {price_above_bid} proposal buy {proposal.buys[0].price}")
 
             # If the price_above_bid is lower than the price suggested by the pricing proposal,
             # lower your price to this
