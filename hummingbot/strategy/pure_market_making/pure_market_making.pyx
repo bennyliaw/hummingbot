@@ -1173,8 +1173,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.c_cancel_order(self._market_info, order.client_order_id)
         else:
             self.logger().info(f"Not cancelling active orders since difference between new order prices "
-                               f"and current order prices is within "
                                f"{self._order_refresh_tolerance_pct:.2%} order_refresh_tolerance_pct")
+                               f"and current order prices is within half min spread")
             self.set_timers()
 
     cdef c_cancel_hanging_orders(self):
