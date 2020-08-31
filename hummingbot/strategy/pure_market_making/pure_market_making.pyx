@@ -1135,8 +1135,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         current_prices = sorted(current_prices)
         proposal_prices = sorted(proposal_prices)
         for current, proposal in zip(current_prices, proposal_prices):
+            tolerance = min(self._bid_spread, self._ask_spread) / 2
             # if spread diff is more than the tolerance or order quantities are different, return false.
-            if abs(proposal - current)/current > self._order_refresh_tolerance_pct:
+            if abs(proposal - current)/current > tolerance: #BBYAO
                 return False
         return True
 
