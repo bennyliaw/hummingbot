@@ -100,7 +100,7 @@ def start(self):
             hanging_orders_cancel_pct=hanging_orders_cancel_pct,
             order_refresh_tolerance_pct=order_refresh_tolerance_pct,
             minimum_spread=minimum_spread,
-            min_profitability=min_profitability，
+            min_profitability=min_profitability,
             hb_app_notification=True,
         )
         self.logger().info("Done pure_market_making start.")
