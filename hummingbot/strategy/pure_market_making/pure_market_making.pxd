@@ -11,6 +11,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         object _bid_spread
         object _ask_spread
         object _minimum_spread
+        object _min_profitability
         object _order_amount
         int _order_levels
         int _buy_levels

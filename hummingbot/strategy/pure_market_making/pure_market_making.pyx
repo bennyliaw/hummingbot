@@ -91,6 +91,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                  logging_options: int = OPTION_LOG_ALL,
                  status_report_interval: float = 900,
                  minimum_spread: Decimal = Decimal(0),
+                 min_profitability： Decimal = Decimal(0),
                  hb_app_notification: bool = False,
                  ):
 
@@ -127,6 +128,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._price_floor = price_floor
         self._ping_pong_enabled = ping_pong_enabled
         self._ping_pong_warning_lines = []
+        self._min_profitability = min_profitability
         self._hb_app_notification = hb_app_notification
 
         self._cancel_timestamp = 0
@@ -799,8 +801,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             MarketBase market = self._market_info.market
         self.logger().info(f"Try apply filter unprofitable")
         if len(proposal.sells) >= 1 and len(self._buy_trades) >= 1:
-            if proposal.sells[0].price < self._buy_trades[-1].price * 1.002:
-                adjust = Decimal(self._buy_trades[-1].price * 1.003) - Decimal(proposal.sells[0].price)
+            if proposal.sells[0].price < Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability):
+                adjust = Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability) - Decimal(proposal.sells[0].price)
                 self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs last buy: {self._buy_trades[-1].price:.6g}, will shift={adjust:.6g}")
                 for sell in proposal.sells:
                     sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
@@ -808,8 +810,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                     [f"  Profitable filter shift SELL orders by {adjust:.6g}."]
                 )
         if len(proposal.buys) >= 1 and len(self._sell_trades) >= 1:
-            if proposal.buys[0].price > self._sell_trades[-1].price * .998:
-                adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price * .997)
+            if proposal.buys[0].price > self._sell_trades[-1].price * (1 - self._min_profitability):
+                adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability))
 
                 self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, will shift={adjust:.6g}")
                 for buy in proposal.buys:

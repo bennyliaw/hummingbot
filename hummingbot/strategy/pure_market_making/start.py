@@ -22,6 +22,7 @@ def start(self):
         order_refresh_time = c_map.get("order_refresh_time").value
         bid_spread = c_map.get("bid_spread").value / Decimal('100')
         ask_spread = c_map.get("ask_spread").value / Decimal('100')
+        min_profitability = c_map.get("min_profitability").value / Decimal('100')
         minimum_spread = c_map.get("minimum_spread").value / Decimal('100')
         price_ceiling = c_map.get("price_ceiling").value
         price_floor = c_map.get("price_floor").value
@@ -99,6 +100,7 @@ def start(self):
             hanging_orders_cancel_pct=hanging_orders_cancel_pct,
             order_refresh_tolerance_pct=order_refresh_tolerance_pct,
             minimum_spread=minimum_spread,
+            min_profitability=min_profitability，
             hb_app_notification=True,
         )
         self.logger().info("Done pure_market_making start.")
