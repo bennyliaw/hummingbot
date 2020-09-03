@@ -811,7 +811,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 )
         if len(proposal.buys) >= 1 and len(self._sell_trades) >= 1:
             if proposal.buys[0].price > self._sell_trades[-1].price * (1 - self._min_profitability):
-                adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability))
+                adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability)
 
                 self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, will shift={adjust:.6g}")
                 for buy in proposal.buys:
