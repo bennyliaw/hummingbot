@@ -91,7 +91,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                  logging_options: int = OPTION_LOG_ALL,
                  status_report_interval: float = 900,
                  minimum_spread: Decimal = Decimal(0),
-                 min_profitability： Decimal = Decimal(0),
+                 min_profitability: Decimal = Decimal(0),
                  hb_app_notification: bool = False,
                  ):
 
