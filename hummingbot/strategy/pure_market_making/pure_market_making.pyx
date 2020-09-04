@@ -803,7 +803,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         if len(proposal.sells) >= 1 and len(self._buy_trades) >= 1:
             if proposal.sells[0].price < Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability):
                 adjust = Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability) - Decimal(proposal.sells[0].price)
-                self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs last buy: {self._buy_trades[-1].price:.6g}, will shift={adjust:.6g}")
+                self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs last buy: {self._buy_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g}")
                 for sell in proposal.sells:
                     sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
                 self._ping_pong_warning_lines.extend(
@@ -813,7 +813,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if proposal.buys[0].price > Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability):
                 adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability)
 
-                self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, will shift={adjust:.6g}")
+                self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g}")
                 for buy in proposal.buys:
                     buy.price = market.c_quantize_order_price(self.trading_pair, buy.price - adjust)
                 self._ping_pong_warning_lines.extend(
