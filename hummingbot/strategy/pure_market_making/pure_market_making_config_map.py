@@ -308,8 +308,8 @@ pure_market_making_config_map = {
     "min_profitability": ConfigVar(
         key="min_profitability",
         prompt="What is the minimum profitability for you to make bid/ask offer from last opposite trade price, not fall below will be shifted? (Enter 1 to indicate 1%) >>> ",
-        prompt_on_new=True,
         default=Decimal("0.4"),
+        required_if=lambda: False,
         validator=lambda v: validate_decimal(v, Decimal(-100), Decimal("100"), inclusive=True),
         type_str="decimal"),
 }
