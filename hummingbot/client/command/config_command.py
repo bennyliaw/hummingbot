@@ -65,7 +65,7 @@ class ConfigCommand:
         self._notify("\n".join(lines))
 
         if self.strategy_name is not None:
-            data = [[cv.key, f"None (def:{cv.default}) if cv.value is None else cv.value] for cv in self.strategy_config_map.values() if not cv.is_secure]
+            data = [[cv.key, f"None (def:{cv.default})" if cv.value is None else cv.value] for cv in self.strategy_config_map.values() if not cv.is_secure]
             df = pd.DataFrame(data=data, columns=columns)
             self._notify(f"\nStrategy Configurations:")
             lines = ["    " + line for line in df.to_string(index=False).split("\n")]
