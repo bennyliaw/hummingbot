@@ -52,7 +52,7 @@ class VolTracker(ScriptBase):
             return
 
         if avg_short_volatility is None or median_long_volatility is None:
-            self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility}")
+            self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff}")
             return
 
         # This volatility delta will be used to adjust spreads.
