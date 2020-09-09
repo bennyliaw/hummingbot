@@ -18,7 +18,7 @@ class VolTracker(ScriptBase):
     # Let's set interval and sample sizes as below.
     # These numbers are for testing purposes only (in reality, they should be larger numbers)
     interval = 2        # 2 secs interval
-    short_period = 15   # 15 * 2 secs, 30 secs elapsed
+    short_period = 10   # 10 * 2 secs, 20 secs elapsed
     long_period = 30 #1mins for now # 600   # 20 mins
 
     prev_vol = None
@@ -48,11 +48,11 @@ class VolTracker(ScriptBase):
         if avg_short_volatility is not None:
             self.prev_vol = avg_short_volatility
 
-        if diff is False or (diff <= 0.0002):
+        if diff is not False or avg_short_volatility is None or median_long_volatility is None:
+            self.log(f"avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{self.prev_vol:.4%}")
             return
 
-        if diff is not False or avg_short_volatility is None or median_long_volatility is None:
-            self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} pref:{self.prev_vol}")
+        if diff is False or (diff <= 0.0002):
             return
 
         # This volatility delta will be used to adjust spreads.
@@ -60,8 +60,8 @@ class VolTracker(ScriptBase):
         # Let's round the delta into 0.25% increment to ignore noise and to avoid adjusting the spreads too often.
         spread_adjustment = self.round_by_step(delta, Decimal("0.0025"))
         # Show the user on what's going, you can remove this statement to stop the notification.
-        self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} pref:{self.prev_vol}"
-                    f"spread_adjustment: {spread_adjustment}")
+        self.log(f"avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{self.prev_vol:.4%} "
+                    f"spread_adjustment: {spread_adjustment:.4%}")
 
         #new_bid_spread = self.original_bid_spread + spread_adjustment
         # Let's not set the spreads below the originals, this is to avoid having spreads to be too close
