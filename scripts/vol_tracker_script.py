@@ -47,12 +47,13 @@ class VolTracker(ScriptBase):
         diff = self.prev_vol is not None and avg_short_volatility is not None and abs(avg_short_volatility - self.prev_vol)
         if avg_short_volatility is not None:
             self.prev_vol = avg_short_volatility
-
-        if diff is not False or avg_short_volatility is None or median_long_volatility is None:
             self.log(f"avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{self.prev_vol:.4%}")
+
+        if diff is False or diff <= 0.0002:
             return
 
-        if diff is False or (diff <= 0.0002):
+        if avg_short_volatility is None or median_long_volatility is None:
+            self.log(f"avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{self.prev_vol:.4%}")
             return
 
         # This volatility delta will be used to adjust spreads.
