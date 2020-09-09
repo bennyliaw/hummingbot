@@ -45,7 +45,7 @@ class VolTracker(ScriptBase):
         # We'll start to have these numbers after interval * long_term_period (150 seconds in this example).
 
         #self.log(f"avg_short_volatility: {avg_short_volatility} prev_vol={self.prev_vol}")
-        if self.prev_vol is not None and abs(avg_short_volatility - self.prev_vol) < 0.0002 :
+        if self.prev_vol is None or abs(avg_short_volatility - self.prev_vol) < 0.0002 :
             return
 
         self.prev_vol=avg_short_volatility
