@@ -21,6 +21,8 @@ class VolTracker(ScriptBase):
     short_period = 10   # 10 * 2 secs, 20 secs elapsed
     long_period = 600   # 20 mins
 
+    prev_vol = None
+
     def __init__(self):
         super().__init__()
         self.original_bid_spread = None
@@ -42,6 +44,10 @@ class VolTracker(ScriptBase):
         # If the bot just got started, we'll not have these numbers yet as there is not enough mid_price sample size.
         # We'll start to have these numbers after interval * long_term_period (150 seconds in this example).
 
+        if avg_short_volatility == prev_vol:
+            return
+
+        prev_vol=avg_short_volatility
 
         if avg_short_volatility is None or median_long_volatility is None:
             self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility}")
