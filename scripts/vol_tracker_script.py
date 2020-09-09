@@ -49,19 +49,20 @@ class VolTracker(ScriptBase):
         diff = prev is not None and avg_short_volatility is not None and abs(avg_short_volatility - prev)
 
         if prev is None and avg_short_volatility is not None:
+            self.log(f"*** avg_short_volatility: {avg_short_volatility:.4%}")
             self.notify(f"*** avg_short_volatility: {avg_short_volatility:.4%}")
 
         if diff is False or diff <= 0.000001:
-            if diff is False:
-                self.notify(
-                    f"* diff is False avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} prev:{prev}")
-            if diff <= 0.000001:
-                self.notify(f"* avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} prev:{prev}")
+            #if diff is False:
+            #    self.log(
+            #        f"* diff is False avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} prev:{prev}")
+            if diff <= 0.0001:
+                self.log(f"* avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility} diff: {diff:.4%} prev:{prev:.4%}")
 
             return
 
         if avg_short_volatility is None or median_long_volatility is None:
-            self.notify(f"avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%}")
+            self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff:.4%} prev:{prev:.4%}")
             return
 
         # This volatility delta will be used to adjust spreads.
@@ -69,8 +70,11 @@ class VolTracker(ScriptBase):
         # Let's round the delta into 0.25% increment to ignore noise and to avoid adjusting the spreads too often.
         spread_adjustment = self.round_by_step(delta, Decimal("0.0025"))
         # Show the user on what's going, you can remove this statement to stop the notification.
-        self.notify(f"$$ avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%} "
+        self.log(f"$$ avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%} "
                     f"spread_adjustment: {spread_adjustment:.4%}")
+        self.notify(
+            f"$$ avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%} "
+            f"spread_adjustment: {spread_adjustment:.4%}")
 
         #new_bid_spread = self.original_bid_spread + spread_adjustment
         # Let's not set the spreads below the originals, this is to avoid having spreads to be too close
