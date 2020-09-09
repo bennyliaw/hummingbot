@@ -48,7 +48,7 @@ class VolTracker(ScriptBase):
         if avg_short_volatility is not None:
             self.prev_vol = avg_short_volatility
 
-        if diff is not None and diff <= 0.0001 :
+        if diff is not None and diff <= 0.0002 :
             return
 
         if avg_short_volatility is None or median_long_volatility is None:
@@ -60,7 +60,7 @@ class VolTracker(ScriptBase):
         # Let's round the delta into 0.25% increment to ignore noise and to avoid adjusting the spreads too often.
         spread_adjustment = self.round_by_step(delta, Decimal("0.0025"))
         # Show the user on what's going, you can remove this statement to stop the notification.
-        self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} "
+        self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff}"
                     f"spread_adjustment: {spread_adjustment}")
 
         #new_bid_spread = self.original_bid_spread + spread_adjustment
