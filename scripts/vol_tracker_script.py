@@ -54,9 +54,9 @@ class VolTracker(ScriptBase):
         if diff is False or diff <= 0.000001:
             if diff is False:
                 self.notify(
-                    f"* diff is False avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%}")
+                    f"* diff is False avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} prev:{prev}")
             if diff <= 0.000001:
-                self.notify(f"* avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%}")
+                self.notify(f"* avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} prev:{prev}")
 
             return
 
