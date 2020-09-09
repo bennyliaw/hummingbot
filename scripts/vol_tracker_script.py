@@ -44,15 +44,15 @@ class VolTracker(ScriptBase):
         # If the bot just got started, we'll not have these numbers yet as there is not enough mid_price sample size.
         # We'll start to have these numbers after interval * long_term_period (150 seconds in this example).
 
-        diff = self.prev_vol is not None and avg_short_volatility is not None and abs(avg_short_volatility - self.prev_vol) or None
+        diff = self.prev_vol is not None and avg_short_volatility is not None and abs(avg_short_volatility - self.prev_vol)
         if avg_short_volatility is not None:
             self.prev_vol = avg_short_volatility
 
-        if diff is not None and diff <= 0.0002 :
+        if diff is False or (diff <= 0.0002):
             return
 
         if avg_short_volatility is None or median_long_volatility is None:
-            self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff}")
+            self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} pref:{self.prev_vol}")
             return
 
         # This volatility delta will be used to adjust spreads.
@@ -60,7 +60,7 @@ class VolTracker(ScriptBase):
         # Let's round the delta into 0.25% increment to ignore noise and to avoid adjusting the spreads too often.
         spread_adjustment = self.round_by_step(delta, Decimal("0.0025"))
         # Show the user on what's going, you can remove this statement to stop the notification.
-        self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff}"
+        self.log(f"avg_short_volatility: {avg_short_volatility} median_long_volatility: {median_long_volatility} diff: {diff} pref:{self.prev_vol}"
                     f"spread_adjustment: {spread_adjustment}")
 
         #new_bid_spread = self.original_bid_spread + spread_adjustment
