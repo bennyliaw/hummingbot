@@ -17,9 +17,9 @@ class VolTracker(ScriptBase):
 
     # Let's set interval and sample sizes as below.
     # These numbers are for testing purposes only (in reality, they should be larger numbers)
-    interval = 2        # 2 secs interval
-    short_period = 10   # 10 * 2 secs, 20 secs elapsed
-    long_period = 30 #1mins for now # 600   # 20 mins
+    interval = 5        # 5 secs interval
+    short_period = 3   # 3 * 5 secs, 15 secs elapsed
+    long_period = 150 #1mins for now # 600   # 20 mins
 
     prev_vol = None
 
@@ -52,7 +52,8 @@ class VolTracker(ScriptBase):
             self.log(f"*** avg_short_volatility: {avg_short_volatility:.4%}")
             self.notify(f"*** avg_short_volatility: {avg_short_volatility:.4%}")
 
-        if diff is False or diff <= 0.0001:
+        if diff is False:
+            return
             #if diff is False:
             #    return
             #self.log(f"* avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility} diff: {diff:.4%} prev:{prev:.4%}")
@@ -70,9 +71,11 @@ class VolTracker(ScriptBase):
         # Show the user on what's going, you can remove this statement to stop the notification.
         self.log(f"$$ avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%} "
                     f"spread_adjustment: {spread_adjustment:.4%}")
-        self.notify(
-            f"$$ avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%} "
-            f"spread_adjustment: {spread_adjustment:.4%}")
+
+        if diff >= 0.001:
+            self.notify(
+                f"$$ avg_short_volatility: {avg_short_volatility:.4%} median_long_volatility: {median_long_volatility:.4%} diff: {diff:.4%} prev:{prev:.4%} "
+                f"spread_adjustment: {spread_adjustment:.4%}")
 
         #new_bid_spread = self.original_bid_spread + spread_adjustment
         # Let's not set the spreads below the originals, this is to avoid having spreads to be too close
