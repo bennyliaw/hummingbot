@@ -354,6 +354,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         self._ask_spread = value
 
     @property
+    def min_profitability(self) -> Decimal:
+        return self._min_profitability
+
+    @min_profitability.setter
+    def min_profitability(self, value: Decimal):
+        self._min_profitability = value
+
+    @property
     def order_optimization_enabled(self) -> bool:
         return self._order_optimization_enabled
 
