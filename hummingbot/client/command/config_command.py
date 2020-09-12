@@ -100,6 +100,9 @@ class ConfigCommand:
         elif key == "ask_spread":
             pure_mm_strategy.ask_spread = new_value / Decimal("100")
             return True
+        elif key == "min_profitability":
+            pure_mm_strategy.min_profitability = new_value / Decimal("100")
+            return True
         return False
 
     async def _config_single_key(self,  # type: HummingbotApplication
