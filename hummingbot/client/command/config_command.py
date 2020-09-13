@@ -103,6 +103,15 @@ class ConfigCommand:
         elif key == "min_profitability":
             pure_mm_strategy.min_profitability = new_value / Decimal("100")
             return True
+        elif key == "order_levels":
+            pure_mm_strategy.order_levels = new_value
+            return True
+        elif key == "filled_buys_balance":
+            pure_mm_strategy.filled_buys_balance = new_value
+            return True
+        elif key == "filled_sells_balance":
+            pure_mm_strategy.filled_sells_balance = new_value
+            return True
         return False
 
     async def _config_single_key(self,  # type: HummingbotApplication

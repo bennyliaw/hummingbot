@@ -264,6 +264,9 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @order_levels.setter
     def order_levels(self, value: int):
         self._order_levels = value
+        self._buy_levels = value
+        self._sell_levels = value
+
 
     @property
     def buy_levels(self) -> int:

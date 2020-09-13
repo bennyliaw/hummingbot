@@ -312,4 +312,16 @@ pure_market_making_config_map = {
         required_if=lambda: False,
         validator=lambda v: validate_decimal(v, Decimal(-100), Decimal("100"), inclusive=True),
         type_str="decimal"),
+    "filled_buys_balance":
+        ConfigVar(key="filled_buys_balance",
+                  prompt="Adjust ping pong buy balance? >>> ",
+                  type_str="int",
+                  validator=lambda v: validate_int(v, min_value=0, inclusive=True),
+                  default=0),
+    "filled_sells_balance":
+        ConfigVar(key="filled_sells_balance",
+                  prompt="Adjust ping pong sell balance?? >>> ",
+                  type_str="int",
+                  validator=lambda v: validate_int(v, min_value=0, inclusive=True),
+                  default=0),
 }
