@@ -112,6 +112,15 @@ class ConfigCommand:
         elif key == "filled_sells_balance":
             pure_mm_strategy.filled_sells_balance = new_value
             return True
+        elif key == "order_amount":
+            pure_mm_strategy.order_amount = new_value
+            return True
+        elif key == "order_level_amount":
+            pure_mm_strategy.order_level_amount = new_value
+            return True
+        elif key == "order_level_spread":
+            pure_mm_strategy.order_level_spread = new_value / Decimal("100")
+            return True
         return False
 
     async def _config_single_key(self,  # type: HummingbotApplication
