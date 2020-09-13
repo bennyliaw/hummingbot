@@ -316,12 +316,12 @@ pure_market_making_config_map = {
         ConfigVar(key="filled_buys_balance",
                   prompt="Adjust ping pong buy balance? >>> ",
                   type_str="int",
-                  validator=lambda v: validate_int(v, min_value=0, inclusive=True),
+                  validator=lambda v: validate_int(v, min_value=-1, inclusive=False),
                   default=0),
     "filled_sells_balance":
         ConfigVar(key="filled_sells_balance",
                   prompt="Adjust ping pong sell balance?? >>> ",
                   type_str="int",
-                  validator=lambda v: validate_int(v, min_value=0, inclusive=True),
+                  validator=lambda v: validate_int(v, min_value=-1, inclusive=False),
                   default=0),
 }
