@@ -121,6 +121,9 @@ class ConfigCommand:
         elif key == "order_level_spread":
             pure_mm_strategy.order_level_spread = new_value / Decimal("100")
             return True
+        elif key == "order_refresh_time":
+            pure_mm_strategy.order_refresh_time = new_value
+            return True
         return False
 
     async def _config_single_key(self,  # type: HummingbotApplication
