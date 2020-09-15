@@ -379,7 +379,8 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     @order_refresh_time.setter
     def order_refresh_time(self, value: float):
         self._order_refresh_time = value
-        self.set_timers()
+        self._create_timestamp = 0  # force recreate
+        self._cancel_timestamp = 0
 
     @property
     def filled_order_delay(self) -> float:
