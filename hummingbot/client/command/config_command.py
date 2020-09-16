@@ -124,6 +124,10 @@ class ConfigCommand:
         elif key == "order_refresh_time":
             pure_mm_strategy.order_refresh_time = new_value
             return True
+        elif key == "filled_order_delay":
+            pure_mm_strategy.filled_order_delay = new_value
+            return True
+
         return False
 
     async def _config_single_key(self,  # type: HummingbotApplication
