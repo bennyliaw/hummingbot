@@ -817,7 +817,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             if proposal.sells[0].price < Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability):
                 adjust = Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability) - Decimal(proposal.sells[0].price)
                 adjustPct = adjust / Decimal(proposal.sells[0].price)
-                self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs top buy: {self._buy_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g} ie. {adjustPct:.4%}")
+                self.logger().info(f"SELL Order unprofitable, sell price: {Decimal(proposal.sells[0].price):.6g} vs top buy: {Decimal(self._buy_trades[-1].price):.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g} ie. {adjustPct:.4%}")
                 for sell in proposal.sells:
                     sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
                 self._ping_pong_warning_lines.extend(
@@ -828,7 +828,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability)
                 adjustPct = adjust / Decimal(proposal.buys[0].price)
 
-                self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g} ie. {adjustPct:.4%}")
+                self.logger().info(f"BUY Order unprofitable, buy price: {Decimal(proposal.buys[0].price):.6g} vs top sell: {Decimal(self._sell_trades[-1].price):.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g} ie. {adjustPct:.4%}")
                 for buy in proposal.buys:
                     buy.price = market.c_quantize_order_price(self.trading_pair, buy.price - adjust)
                 self._ping_pong_warning_lines.extend(
@@ -884,7 +884,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                                         buy.size, buy.price)
             quote_size = buy.size * buy.price * (Decimal(1) + buy_fees.percent)
             if quote_balance < quote_size_total + quote_size:
-                self.logger().info(f"Insufficient balance: Buy order (price: {buy.price}, size: {buy.size}) is omitted, {self.quote_asset} available balance: {quote_balance - quote_size_total}.")
+                self.logger().info(f"Insufficient balance: Buy order (price: {buy.price}, size: {buy.size}) is omitted, {self.quote_asset} available balance: {Decimal(quote_balance - quote_size_total):.4g}.")
                 quote_size = s_decimal_zero
                 buy.size = s_decimal_zero
             quote_size_total += quote_size
@@ -892,7 +892,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for sell in proposal.sells:
             base_size = sell.size
             if base_balance < base_size_total + base_size:
-                self.logger().info(f"Insufficient balance: Sell order (price: {sell.price}, size: {sell.size}) is omitted, {self.base_asset} available balance: {base_balance - base_size_total}.")
+                self.logger().info(f"Insufficient balance: Sell order (price: {sell.price}, size: {sell.size}) is omitted, {self.base_asset} available balance: {Deicmal(base_balance - base_size_total):.4g}.")
                 base_size = s_decimal_zero
                 sell.size = s_decimal_zero
             base_size_total += base_size
@@ -922,7 +922,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         #if self._order_levels > 1:
         #    return
 
-        self.logger().info(f"Try price opt")
+        #self.logger().info(f"Try price opt")
 
         for order in self.active_orders:
             if order.is_buy:
@@ -940,13 +940,14 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             )
             # Get the price above the top bid
             price_above_bid = (ceil(top_bid_price / price_quantum) + 1) * price_quantum
-            self.logger().info(f"top_bid_price {top_bid_price} price_above_bid {price_above_bid} proposal buy {proposal.buys[0].price}")
 
             # If the price_above_bid is lower than the price suggested by the pricing proposal,
             # lower your price to this
             if price_above_bid < proposal.buys[0].price:
+                self.logger().info(f"top_bid_price {top_bid_price} price_above_bid {price_above_bid} proposal buy {proposal.buys[0].price}")
+                self.logger().info(f"  Order Opt adjusted proposed BUY price {proposal.buys[0].price} to {price_above_bid}, top_bid_price {top_bid_price}")
                 self._ping_pong_warning_lines.extend(
-                    [f"  Order Opt adjusted proposed BUY price {proposal.buys[0].price} to {price_above_bid}, top_bid_price {top_bid_price}."]
+                    [f"  *Order Opt adjusted proposed BUY price {proposal.buys[0].price} to {price_above_bid}, top_bid_price {top_bid_price}."]
                 )
                 proposal.buys[0].price = market.c_quantize_order_price(self.trading_pair, price_above_bid)
 
@@ -963,11 +964,12 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             )
             # Get the price below the top ask
             price_below_ask = (floor(top_ask_price / price_quantum) - 1) * price_quantum
-            self.logger().info(f"top_ask_price {top_ask_price} price_below_ask {price_below_ask} proposal sell {proposal.sells[0].price}")
 
             # If the price_below_ask is higher than the price suggested by the pricing proposal,
             # increase your price to this
             if price_below_ask > proposal.sells[0].price:
+                self.logger().info(f"top_ask_price {top_ask_price} price_below_ask {price_below_ask} proposal sell {proposal.sells[0].price}")
+                self.logger().info(f"  *Order Opt adjusted proposed SELL price {proposal.sells[0].price} to {price_below_ask}, top_ask_price {top_ask_price}")
                 self._ping_pong_warning_lines.extend(
                     [f"  Order Opt adjusted proposed SELL price {proposal.sells[0].price} to {price_below_ask}, top_ask_price {top_ask_price}."]
                 )
@@ -1155,7 +1157,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             tolerance = min(self._bid_spread, self._ask_spread) / 2
             # if spread diff is more than the tolerance or order quantities are different, return false.
             if abs(proposal - current)/current > tolerance: #BBYAO
-                self.logger().info(f"Will cancel as proposed {proposal:.6g}, current {current:.6g}, diff ({abs(proposal - current)/current:.2%}) is > half min spread {tolerance:.2%}")
+                self.logger().info(f"Will cancel as proposed {proposal:.6g}, current {current:.6g}, diff ({abs(proposal - current)/current:.3%}) is > half min spread {tolerance:.3%}")
                 return False
         return True
 
@@ -1191,7 +1193,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 self.c_cancel_order(self._market_info, order.client_order_id)
         else:
             self.logger().info(f"Not cancelling active orders since difference between new order prices "
-                               f"and current order prices is within half min spread")
+                               f"and current order prices is within half min spread (min(self._bid_spread, self._ask_spread) / 2:.3%)")
             self.set_timers()
 
     cdef c_cancel_hanging_orders(self):
