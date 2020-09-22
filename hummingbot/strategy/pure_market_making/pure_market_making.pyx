@@ -577,6 +577,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         df = pd.DataFrame(data=data)
         return df
 
+    def active_order_too_old(self) -> bool:
+        # order longer than 30 mins wont get reward, so we shall cancel and recreate as needed
+        minCreationTime = min( int(order.client_order_id[-16:]) for order in active_orders )
+        return int(time.time() - minCreationTime/1e6) > (1800 - 60)
+
     def active_orders_df(self) -> pd.DataFrame:
         mid_price = self.get_mid_price()
         active_orders = self.active_orders
@@ -1178,8 +1183,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             bint to_defer_canceling = False
         if len(active_orders) == 0:
             return
-        if proposal is not None and self._order_refresh_tolerance_pct >= 0:
-
+        if not self.active_order_too_old() and proposal is not None and self._order_refresh_tolerance_pct >= 0:
             active_buy_prices = [Decimal(str(o.price)) for o in active_orders if o.is_buy]
             active_sell_prices = [Decimal(str(o.price)) for o in active_orders if not o.is_buy]
             proposal_buys = [buy.price for buy in proposal.buys]
