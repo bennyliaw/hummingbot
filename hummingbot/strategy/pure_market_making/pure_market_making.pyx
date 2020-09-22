@@ -812,25 +812,27 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     cdef c_apply_filter_unprofitable(self, proposal):
         cdef:
             MarketBase market = self._market_info.market
-        self.logger().info(f"Try apply filter unprofitable")
+        #self.logger().info(f"Try apply filter unprofitable")
         if len(proposal.sells) >= 1 and len(self._buy_trades) >= 1:
             if proposal.sells[0].price < Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability):
                 adjust = Decimal(self._buy_trades[-1].price) * (1 + self._min_profitability) - Decimal(proposal.sells[0].price)
-                self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs last buy: {self._buy_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g}")
+                adjustPct = adjust / Decimal(proposal.sells[0].price)
+                self.logger().info(f"SELL Order unprofitable, sell price: {proposal.sells[0].price:.6g} vs top buy: {self._buy_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g} ie. {adjustPct:.4%}")
                 for sell in proposal.sells:
                     sell.price = market.c_quantize_order_price(self.trading_pair, sell.price + adjust)
                 self._ping_pong_warning_lines.extend(
-                    [f"  Profitable filter shift SELL orders by {adjust:.6g}."]
+                    [f"  Profitable filter shift SELL orders by {adjust:.6g} ie. {adjustPct:.4%}."]
                 )
         if len(proposal.buys) >= 1 and len(self._sell_trades) >= 1:
             if proposal.buys[0].price > Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability):
                 adjust = Decimal(proposal.buys[0].price) - Decimal(self._sell_trades[-1].price) * (1 - self._min_profitability)
+                adjustPct = adjust / Decimal(proposal.buys[0].price)
 
-                self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g}")
+                self.logger().info(f"BUY Order unprofitable, buy price: {proposal.buys[0].price:.6g} vs last sell: {self._sell_trades[-1].price:.6g}, min_profit={self._min_profitability:.4%}, will shift={adjust:.6g} ie. {adjustPct:.4%}")
                 for buy in proposal.buys:
                     buy.price = market.c_quantize_order_price(self.trading_pair, buy.price - adjust)
                 self._ping_pong_warning_lines.extend(
-                    [f"  Profitable filter shift BUY orders by {adjust:.6g}."]
+                    [f"  Profitable filter shift BUY orders by {adjust:.6g} ie. {adjustPct:.4%}."]
                 )
 
     cdef c_apply_order_size_modifiers(self, object proposal):
