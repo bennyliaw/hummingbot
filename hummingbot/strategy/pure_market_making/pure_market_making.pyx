@@ -1,4 +1,5 @@
 from collections import deque
+import datetime
 from decimal import Decimal
 import logging
 import pandas as pd
@@ -580,7 +581,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     def active_order_too_old(self) -> bool:
         # order longer than 30 mins wont get reward, so we shall cancel and recreate as needed
         minCreationTime = min( int(order.client_order_id[-16:]) for order in self.active_orders )
-        return int(time.time() - minCreationTime/1e6) > (1800 - 60)
+        return int(time.time() - minCreationTime/1e6) > (120 - 60)
 
     def active_orders_df(self) -> pd.DataFrame:
         mid_price = self.get_mid_price()
@@ -1183,7 +1184,11 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             bint to_defer_canceling = False
         if len(active_orders) == 0:
             return
-        if not self.active_order_too_old() and proposal is not None and self._order_refresh_tolerance_pct >= 0:
+        if self.active_order_too_old():
+            self.notify_hb_app(
+                f"  ** Order too old, will cancel and recreate now {datetime.datetime.now().strftime('%H:%M:%S')}."
+            )
+        elif proposal is not None and self._order_refresh_tolerance_pct >= 0:
             active_buy_prices = [Decimal(str(o.price)) for o in active_orders if o.is_buy]
             active_sell_prices = [Decimal(str(o.price)) for o in active_orders if not o.is_buy]
             proposal_buys = [buy.price for buy in proposal.buys]
