@@ -1153,7 +1153,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
             tolerance = min(self._bid_spread, self._ask_spread) / 2
             # if spread diff is more than the tolerance or order quantities are different, return false.
             if abs(proposal - current)/current > tolerance: #BBYAO
-                self.logger().info(f"Will cancel as proposed {proposal:.2%} diff ({abs(proposal - current)/current:.2%}) is > half min spread {tolerance:.2%}")
+                self.logger().info(f"Will cancel as proposed {proposal:.6g}, current {current:.6g}, diff ({abs(proposal - current)/current:.2%}) is > half min spread {tolerance:.2%}")
                 return False
         return True
 
