@@ -579,7 +579,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
 
     def active_order_too_old(self) -> bool:
         # order longer than 30 mins wont get reward, so we shall cancel and recreate as needed
-        minCreationTime = min( int(order.client_order_id[-16:]) for order in active_orders )
+        minCreationTime = min( int(order.client_order_id[-16:]) for order in self.active_orders )
         return int(time.time() - minCreationTime/1e6) > (1800 - 60)
 
     def active_orders_df(self) -> pd.DataFrame:
