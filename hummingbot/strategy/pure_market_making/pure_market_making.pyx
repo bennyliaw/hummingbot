@@ -892,7 +892,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         for sell in proposal.sells:
             base_size = sell.size
             if base_balance < base_size_total + base_size:
-                self.logger().info(f"Insufficient balance: Sell order (price: {sell.price}, size: {sell.size}) is omitted, {self.base_asset} available balance: {Deicmal(base_balance - base_size_total):.4g}.")
+                self.logger().info(f"Insufficient balance: Sell order (price: {sell.price}, size: {sell.size}) is omitted, {self.base_asset} available balance: {Decimal(base_balance - base_size_total):.4g}.")
                 base_size = s_decimal_zero
                 sell.size = s_decimal_zero
             base_size_total += base_size
