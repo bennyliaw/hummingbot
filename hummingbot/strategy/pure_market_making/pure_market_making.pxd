@@ -75,4 +75,4 @@ cdef class PureMarketMakingStrategy(StrategyBase):
     cdef bint c_to_create_orders(self, object proposal)
     cdef c_execute_orders_proposal(self, object proposal)
     cdef set_timers(self)
-    cdef bool active_order_too_old(self)
+    cdef bint active_order_too_old(self)
