@@ -1086,7 +1086,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 )
                 self.notify_hb_app(
                     f"Hanging maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled {datetime.datetime.now().strftime('%H:%M:%S')}."
+                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled at {datetime.datetime.now().strftime('%H:%M:%S')}."
                 )
                 return
 
@@ -1108,7 +1108,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         )
         self.notify_hb_app(
             f"Maker BUY order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled {datetime.datetime.now().strftime('%H:%M:%S')}."
+            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled at {datetime.datetime.now().strftime('%H:%M:%S')}."
         )
 
     cdef c_did_complete_sell_order(self, object order_completed_event):
@@ -1129,7 +1129,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
                 )
                 self.notify_hb_app(
                     f"Hanging maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+                    f"{limit_order_record.price} {limit_order_record.quote_currency} is filled at {datetime.datetime.now().strftime('%H:%M:%S')}."
                 )
                 return
 
@@ -1151,7 +1151,7 @@ cdef class PureMarketMakingStrategy(StrategyBase):
         )
         self.notify_hb_app(
             f"Maker SELL order {limit_order_record.quantity} {limit_order_record.base_currency} @ "
-            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled."
+            f"{limit_order_record.price} {limit_order_record.quote_currency} is filled at {datetime.datetime.now().strftime('%H:%M:%S')}."
         )
 
     cdef bint c_is_within_tolerance(self, list current_prices, list proposal_prices):
