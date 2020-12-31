@@ -10,6 +10,7 @@ from typing import (
 from sqlalchemy import (
     Column,
     ForeignKey,
+    String,
     Text,
     Integer,
     Index,
@@ -41,12 +42,12 @@ class TradeFill(HummingbotBase):
     id = Column(Integer, primary_key=True, nullable=False)
     config_file_path = Column(Text, nullable=False)
     strategy = Column(Text, nullable=False)
-    market = Column(Text, nullable=False)
+    market = Column(String(16), nullable=False)
     symbol = Column(Text, nullable=False)
     base_asset = Column(Text, nullable=False)
     quote_asset = Column(Text, nullable=False)
     timestamp = Column(BigInteger, nullable=False)
-    order_id = Column(Text, ForeignKey("Order.id"), nullable=False)
+    order_id = Column(String(128), ForeignKey("Order.id"), nullable=False)
     trade_type = Column(Text, nullable=False)
     order_type = Column(Text, nullable=False)
     price = Column(Float, nullable=False)
