@@ -95,7 +95,8 @@ class ExportCommand:
         session: Session = self.trade_fill_db.get_shared_session()
         filters = [TradeFill.timestamp >= start_timestamp]
         if config_file_path is not None:
-            filters.append(TradeFill.config_file_path.like(f"%{config_file_path}%"))
+            filters.append(TradeFill.config_file_path.like(f"{config_file_path}"))
+            # filters.append(TradeFill.config_file_path.like(f"%{config_file_path}%"))
         query: Query = (session
                         .query(TradeFill)
                         .filter(*filters)
